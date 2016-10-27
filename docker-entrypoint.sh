@@ -1,4 +1,6 @@
 #!/bin/sh
+
+set -e # terminate on errors
 set -xo pipefail
 
 DATA_DIR="$(mysqld --verbose --help --log-bin-index=`mktemp -u` 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
@@ -73,7 +75,7 @@ EOSQL
       mysql $mysql_options -e "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;"
     fi
 
-    mysql $mysql_options 'FLUSH PRIVILEGES ;'
+    mysql $mysql_options -e 'FLUSH PRIVILEGES ;'
   fi
 
   echo
