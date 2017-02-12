@@ -43,7 +43,7 @@ if [ ! -d "$DATA_DIR/mysql" ]; then
   fi
 
   if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-    MYSQL_ROOT_PASSWORD="$(/dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-10})"
+    MYSQL_ROOT_PASSWORD="$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c10)"
     echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
   fi
 
