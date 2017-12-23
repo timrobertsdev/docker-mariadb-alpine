@@ -2,23 +2,25 @@ FROM alpine:latest
 
 ENV LC_ALL=en_GB.UTF-8
 
-RUN apk -U upgrade
-RUN apk add mariadb mariadb-client
-
-RUN mkdir /docker-entrypoint-initdb.d
+RUN mkdir /docker-entrypoint-initdb.d && \
+    apk -U upgrade && \
+    apk add --no-cache mariadb mariadb-client && \
+    apk add --no-cache tzdata && \
+    # clean up
+    rm -rf /var/cache/apk/*
 
 # comment out a few problematic configuration values
-# don't reverse lookup hostnames, they are usually another container
-RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf \
-  && echo -e 'skip-host-cache\nskip-name-resolve' | awk '{ print } $1 == "[mysqld]" && c == 0 { c = 1; system("cat") }' /etc/mysql/my.cnf > /tmp/my.cnf \
-  && mv /tmp/my.cnf /etc/mysql/my.cnf
-
-RUN rm -rf /tmp/src
-RUN rm -rf /var/cache/apk/*
+RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf && \
+    # don't reverse lookup hostnames, they are usually another container
+    sed -i '/^\[mysqld]$/a skip-host-cache\nskip-name-resolve' /etc/mysql/my.cnf && \
+    # always run as user mysql
+    sed -i '/^\[mysqld]$/a user=mysql' /etc/mysql/my.cnf
 
 VOLUME /var/lib/mysql
 
-COPY docker-entrypoint.sh /
-ENTRYPOINT ["/docker-entrypoint.sh"]
+COPY docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 3306
+# Default arguments passed to ENTRYPOINT if no arguments are passed when starting container
+CMD ["mysqld_safe"]
