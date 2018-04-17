@@ -132,7 +132,6 @@ SQL
   file_env 'MYSQL_DATABASE'
   if [ "$MYSQL_DATABASE" ]; then
     execute "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
-    mysql_options="$mysql_options \"$MYSQL_DATABASE\""
   fi
 
   file_env 'MYSQL_USER'
@@ -145,6 +144,12 @@ SQL
     fi
 
     execute 'FLUSH PRIVILEGES ;'
+  fi
+
+  # Database cannot be specified when creating user,
+  # otherwise it will fail with "Unknown database"
+  if [ "$MYSQL_DATABASE" ]; then
+    mysql_options="$mysql_options \"$MYSQL_DATABASE\""
   fi
 
   echo
