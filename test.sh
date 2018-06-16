@@ -40,7 +40,7 @@ start_container() {
     docker run --detach --name mariadb_alpine_test -p 33060:3306 \
       --env-file="$ENV_FILE" \
       -e MYSQL_ROOT_PASSWORD="$MYSQL_PWD" \
-      -v "${DOCKER_VOLUME}":/var/lib/mysql \
+      -v "${DOCKER_VOLUME}" \
       mariadb-alpine:latest > /dev/null
   fi
 }
@@ -251,7 +251,7 @@ test_skip_tzinfo() {
 
 test_volume() {
   export MYSQL_PWD=mypassword
-  export DOCKER_VOLUME=$(mktemp -p /tmp -d mariadb_alpine_test_volume.XXXXX)
+  export DOCKER_VOLUME="$(mktemp -p /tmp -d mariadb_alpine_test_volume.XXXXX):/var/lib/mysql"
   echo 'Test volume'
   echo > "$ENV_FILE"
   start_container
@@ -266,6 +266,25 @@ test_volume() {
   unset DOCKER_VOLUME
 }
 
+test_custom_initialization_script() {
+  export MYSQL_PWD='root'
+  export DOCKER_VOLUME="$(readlink -e test/initdb.d):/docker-entrypoint-initdb.d"
+  echo "Test custom initialization script"
+  echo > "$ENV_FILE"
+
+  start_container
+  wait_running
+
+  local result=$(execute "USE test_docker; SELECT name from users where name = 'admin' LIMIT 1" || true)
+  if [ "$result" = "Admin" ]; then
+    echo_success "Test successful"
+    remove_container
+  else
+    echo_error "No records found"
+    exit 1
+  fi
+}
+
 remove_container
 
 test_root_password
@@ -276,6 +295,7 @@ test_mysql_database
 test_mysql_user
 test_skip_tzinfo
 test_volume
+test_custom_initialization_script
 
 echo 'Clean up temp files...'
 rm -f  "$ENV_FILE"

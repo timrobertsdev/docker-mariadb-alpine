@@ -153,7 +153,7 @@ SQL
   fi
 
   echo
-  for f in $(ls /docker-entrypoint-initdb.d/); do
+  for f in /docker-entrypoint-initdb.d/*; do
     case "$f" in
       *.sh)     echo "$0: running $f"; . "$f" ;;
       *.sql)    echo "$0: running $f"; execute < "$f"; echo ;;
