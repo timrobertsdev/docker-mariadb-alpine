@@ -10,13 +10,14 @@ RUN mkdir /docker-entrypoint-initdb.d && \
     rm -rf /var/cache/apk/*
 
 # comment out a few problematic configuration values
-RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/mysql/my.cnf && \
+RUN sed -Ei 's/^(bind-address|log)/#&/' /etc/my.cnf && \
+    sed -i  's/^skip-networking/#&/' /etc/my.cnf.d/mariadb-server.cnf && \
     # don't reverse lookup hostnames, they are usually another container
-    sed -i '/^\[mysqld]$/a skip-host-cache\nskip-name-resolve' /etc/mysql/my.cnf && \
+    sed -i '/^\[mysqld]$/a skip-host-cache\nskip-name-resolve' /etc/my.cnf && \
     # always run as user mysql
-    sed -i '/^\[mysqld]$/a user=mysql' /etc/mysql/my.cnf && \
+    sed -i '/^\[mysqld]$/a user=mysql' /etc/my.cnf && \
     # allow custom configurations
-    echo -e '\n!includedir /etc/mysql/conf.d/' >> /etc/mysql/my.cnf && \
+    echo -e '\n!includedir /etc/mysql/conf.d/' >> /etc/my.cnf && \
     mkdir -p /etc/mysql/conf.d/
 
 VOLUME /var/lib/mysql
