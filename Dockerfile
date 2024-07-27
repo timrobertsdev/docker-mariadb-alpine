@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-ENV LC_ALL=en_GB.UTF-8
+ENV LC_ALL=en_US.UTF-8
 
 RUN mkdir /docker-entrypoint-initdb.d && \
     apk -U upgrade && \
